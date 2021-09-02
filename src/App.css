@@ -10,6 +10,7 @@
   border: 0;
   display: block;
   width: 100%;
+  margin-left:20%;
   background: green;
   color: white;
   font-size: 1.2em;
@@ -19,4 +20,66 @@
 .App-viewer {
   position: relative;
   flex: 1;
+}
+
+/* Split the screen in half */
+.split {
+  height: 100%;
+  position: fixed;
+  z-index: 1;
+  top: 0;
+  overflow-x: hidden;
+  padding-top: 20px;
+}
+
+/* Control the left side */
+.left {
+  left: 0;
+  width: 20%;
+}
+
+.side-anotation{
+  flex-direction: column;
+      justify-content: flex-start;
+      align-items: stretch;
+      height: auto;
+      width: auto;
+      padding: 10px 16px;
+}
+
+.side-anotations {
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+.design-phase__side-annotation-heading {
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.design-phase__side-annotation-label {
+  font-size: 14px;
+  color: rgba(0, 0, 0, 0.7);
+  font-weight: 500;
+}
+/* Control the right side */
+.right {
+  right: 0;
+  width: 80%;
+}
+
+/* If you want the content centered horizontally and vertically */
+.centered {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+
+/* Style the image inside the centered container, if needed */
+.centered img {
+  width: 150px;
+  border-radius: 50%;
 }
