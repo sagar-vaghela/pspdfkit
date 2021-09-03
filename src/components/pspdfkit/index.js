@@ -1,11 +1,20 @@
 import React, { Component } from "react";
 import PSPDFKitWeb from "pspdfkit";
 
+let ua;
 
+if (typeof navigator !== "undefined" && navigator.userAgent != null) {
+  ua = navigator.userAgent;
+}
 
 let isIe = false;
+
+if (ua != null) {
+  isIe = ua.indexOf("MSIE ") !== -1 || ua.indexOf("Trident/") !== -1;
+}
+
 let dndDataMimeType = !isIe ? "text/plain" : "text";
-let instance ;
+
 
 const insertableAnnotations = [
   {
@@ -16,21 +25,21 @@ const insertableAnnotations = [
     icon: "anno_text",
   },
 
-  // {
-  //   type: "text-field",
-  //   label: "Text",
-  //   description:
-  //     "Use a text field to allow the signer to fill out the name and date sections within the form area",
-  //   icon: "form_text",
-  // },
+  {
+    type: "text-field",
+    label: "Text",
+    description:
+      "Use a text field to allow the signer to fill out the name and date sections within the form area",
+    icon: "form_text",
+  },
 
-  // {
-  //   type: "signature-field",
-  //   label: "Signature",
-  //   description:
-  //     "Use a signature field to allow the signer to fill out the signature section within the form area",
-  //   icon: "form_signature",
-  // },
+  {
+    type: "signature-field",
+    label: "Signature",
+    description:
+      "Use a signature field to allow the signer to fill out the signature section within the form area",
+    icon: "form_signature",
+  },
 ];
 export default class PSPDFKit extends Component {
   constructor(props, context) {
@@ -55,8 +64,11 @@ export default class PSPDFKit extends Component {
       document: props.documentUrl,
       container: this._container,
       baseUrl: props.baseUrl,
+      
     });
+    
     console.log("Successfully mounted PSPDFKit", this._instance);
+
   }
   unload() {
     PSPDFKitWeb.unload(this._instance || this._container);
@@ -80,14 +92,13 @@ export default class PSPDFKit extends Component {
   componentWillUnmount() {
     this.unload();
   }
-
+  
   handleInsertableAnnoClick = (event) => {
     // Extract the type from the data-annotation-type attribute
     const type = event.currentTarget.dataset.annotationType;
   
     this.insertAnnotation(type);
   }
-
 
   handleInsertableAnnoDragStart = (event) => {
     if (!isIe) {
@@ -113,10 +124,9 @@ export default class PSPDFKit extends Component {
     // We need to reference this when creating both the widget annotation and the
     // form field itself, so that they are linked.
     const formFieldName = this.createFormFieldName();
-  
     const widgetProperties = {
-      id: PSPDFKit.generateInstantId(),
-      pageIndex: instance.viewState.currentPageIndex,
+      id: PSPDFKitWeb.generateInstantId(),
+      pageIndex: this._instance.viewState.currentPageIndex,
       formFieldName,
     };
   
@@ -131,18 +141,18 @@ export default class PSPDFKit extends Component {
 
     switch (type) {
       case "text-field": {
-        const widget = new PSPDFKit.Annotations.WidgetAnnotation({
+        const widget = new PSPDFKitWeb.Annotations.WidgetAnnotation({
           ...widgetProperties,
-          borderColor: PSPDFKit.Color.BLACK,
+          borderColor: PSPDFKitWeb.Color.BLACK,
           borderWidth: 1,
           borderStyle: "solid",
-          backgroundColor: new PSPDFKit.Color({ r: 220, g: 240, b: 255 }),
+          backgroundColor: new PSPDFKitWeb.Color({ r: 220, g: 240, b: 255 }),
   
           // This data tells us whether the landlord or tenant can fill in this
           // form field. Otherwise it will be disabled.
           customData: { forSigner: "landlord" },
   
-          boundingBox: new PSPDFKit.Geometry.Rect({
+          boundingBox: new PSPDFKitWeb.Geometry.Rect({
             left,
             top,
             width: 225,
@@ -150,63 +160,63 @@ export default class PSPDFKit extends Component {
           }),
         });
   
-        const formField = new PSPDFKit.FormFields.TextFormField({
+        const formField = new PSPDFKitWeb.FormFields.TextFormField({
           name: formFieldName,
           // Link to the annotation with the ID
-          annotationIds: new PSPDFKit.Immutable.List([widget.id]),
+          annotationIds: new PSPDFKitWeb.Immutable.List([widget.id]),
         });
   
-        instance.create([widget, formField]);
+        this._instance.create([widget, formField]);
         break;
       }
   
-      // case "signature-field": {
-      //   const widget = new PSPDFKit.Annotations.WidgetAnnotation({
-      //     // ...widgetProperties,
+      case "signature-field": {
+        const widget = new PSPDFKitWeb.Annotations.WidgetAnnotation({
+          ...widgetProperties,
           
           
-      //     borderColor: PSPDFKit.Color.BLACK,
-      //     borderWidth: 1,
-      //     borderStyle: "solid",
-      //     backgroundColor: PSPDFKit.Color.WHITE,
-      //     customData: { forSigner: "landlord" },
-      //     boundingBox: new PSPDFKit.Geometry.Rect({
-      //       left,
-      //       top,
-      //       width: 225,
-      //       height: 30,
-      //     }),
-      //   });
+          borderColor: PSPDFKitWeb.Color.BLACK,
+          borderWidth: 1,
+          borderStyle: "solid",
+          backgroundColor: PSPDFKitWeb.Color.WHITE,
+          customData: { forSigner: "landlord" },
+          boundingBox: new PSPDFKitWeb.Geometry.Rect({
+            left,
+            top,
+            width: 225,
+            height: 30,
+          }),
+        });
   
-      //   const formField = new PSPDFKit.FormFields.SignatureFormField({
-      //     name: formFieldName,
-      //     annotationIds: new PSPDFKit.Immutable.List([widget.id]),
-      //   });
+        const formField = new PSPDFKitWeb.FormFields.SignatureFormField({
+          name: formFieldName,
+          annotationIds: new PSPDFKitWeb.Immutable.List([widget.id]),
+        });
   
-      //   instance.create([widget, formField]);
-      //   break;
-      // }
+        this._instance.create([widget, formField]);
+        break;
+      }
   
-      // case "text-anno": {
-      //   // We don't need a form field here since it is just a regular annotation.
+      case "text-anno": {
+        // We don't need a form field here since it is just a regular annotation.
   
-      //   instance.create(
-      //     new PSPDFKit.Annotations.TextAnnotation({
-      //       pageIndex: instance.viewState.currentPageIndex,
-      //       text: "Text Annotation",
-      //       fontSize: 10,
-      //       boundingBox: new PSPDFKit.Geometry.Rect({
-      //         left,
-      //         top,
-      //         width: 100,
-      //         height: 12,
-      //       }),
-      //     })
-      //   );
-  // 
-      //   break;
-      // }
+        this._instance.create(
+          new PSPDFKitWeb.Annotations.TextAnnotation({
+            pageIndex: this._instance.viewState.currentPageIndex,
+            text: "Text Annotation",
+            fontSize: 10,
+            boundingBox: new PSPDFKitWeb.Geometry.Rect({
+              left,
+              top,
+              width: 100,
+              height: 12,
+            }),
+          })
+        );
   
+        break;
+      }
+
       default:
         throw new Error(`Can't insert unknown annotation! (${type})`);
     }
